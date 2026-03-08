@@ -4,12 +4,13 @@
 // Simulates one inference pass through the complete CNN pipeline.
 //
 // Compilation (ModelSim / Questa):
-//   vlog -sv pe.v line_buffer.v requantize.v relu.v sigmoid_lut.v \
+//   vlog pe.v line_buffer.v requantize.v relu.v sigmoid_lut.v \
 //              weights_bias_conv1.v weights_bias_conv2.v \
 //              weights_bias_conv3.v weights_bias_fc.v input_data.v \
 //              conv1.v conv2_dw.v conv3_pw.v maxpool.v fc_layer.v \
 //              cnn_top.v tb_cnn_top.v
 //   vsim -t 1ns tb_cnn_top
+// (the -sv flag is accepted but no longer required)
 //
 // OR use the do-file:  vsim -do "do run_sim.do"
 //
@@ -90,19 +91,19 @@ module tb_cnn_top;
         // Verify layer intermediate outputs
         $display("--- Spot-check layer outputs ---");
         $display("[TB] Conv1 output_buf[0] = %0d (INT8)",
-                 $signed(u_dut.u_conv1.output_buf[0]));
+                 $signed(u_dut.u_conv1.output_buf[7:0]));
         $display("[TB] Conv1 output_buf[1] = %0d",
-                 $signed(u_dut.u_conv1.output_buf[1]));
+                 $signed(u_dut.u_conv1.output_buf[15:8]));
         $display("[TB] Conv2 output_buf[0] = %0d",
-                 $signed(u_dut.u_conv2.output_buf[0]));
+                 $signed(u_dut.u_conv2.output_buf[7:0]));
         $display("[TB] Conv3 output_buf[0] = %0d",
-                 $signed(u_dut.u_conv3.output_buf[0]));
+                 $signed(u_dut.u_conv3.output_buf[7:0]));
         $display("[TB] Pool  output_buf[0] = %0d",
-                 $signed(u_dut.u_pool.output_buf[0]));
+                 $signed(u_dut.u_pool.output_buf[7:0]));
         $display("[TB] FC    output_buf[0] = %0d",
-                 $signed(u_dut.u_fc.output_buf[0]));
+                 $signed(u_dut.u_fc.output_buf[7:0]));
         $display("[TB] FC    output_buf[1] = %0d",
-                 $signed(u_dut.u_fc.output_buf[1]));
+                 $signed(u_dut.u_fc.output_buf[15:8]));
 
         // Additional checks
         $display("--- Checking done deasserts after one cycle ---");

@@ -34,18 +34,21 @@ module cnn_top (
 );
 
     // -------------------------------------------------------------------------
-    // Inter-layer buffers
+    // Inter-layer buffers (flat packed buses, Verilog-2001 compatible)
     // -------------------------------------------------------------------------
-    // Conv1 output (= Act1 output)  (32, 20, 4)
-    wire signed [7:0] conv1_out [0:32*20*4-1];
-    // Conv2 DW output (= Act2 output)  (32, 18, 2)
-    wire signed [7:0] conv2_out [0:32*18*2-1];
-    // Conv3 PW output  (32, 18, 2)
-    wire signed [7:0] conv3_out [0:32*18*2-1];
-    // MaxPool output  (32, 9, 1)
-    wire signed [7:0] pool_out  [0:32*9*1-1];
-    // FC output  (2)
-    wire signed [7:0] fc_out    [0:1];
+    // Conv1 output (= Act1 output)  (32, 20, 4) = 2560 bytes
+    wire [32*20*4*8-1:0] conv1_out;
+    // Conv2 DW output (= Act2 output)  (32, 18, 2) = 1152 bytes
+    wire [32*18*2*8-1:0] conv2_out;
+    // Conv3 PW output  (32, 18, 2) = 1152 bytes
+    wire [32*18*2*8-1:0] conv3_out;
+    // MaxPool output  (32, 9, 1) = 288 bytes
+    wire [32*9*1*8-1:0]  pool_out;
+    // FC output  (2) = 2 bytes
+    wire [2*8-1:0]       fc_out;
+
+    // Sigmoid outputs (declared here so the always block below can read them)
+    wire [31:0] sig_out0, sig_out1;
 
     // -------------------------------------------------------------------------
     // Done / start pipeline
@@ -87,9 +90,8 @@ module cnn_top (
     // -------------------------------------------------------------------------
     // Sigmoid LUT for both FC outputs
     // -------------------------------------------------------------------------
-    wire [31:0] sig_out0, sig_out1;
-    sigmoid_lut u_sig0 (.data_in(fc_out[0]), .data_out(sig_out0));
-    sigmoid_lut u_sig1 (.data_in(fc_out[1]), .data_out(sig_out1));
+    sigmoid_lut u_sig0 (.data_in(fc_out[7:0]),  .data_out(sig_out0));
+    sigmoid_lut u_sig1 (.data_in(fc_out[15:8]), .data_out(sig_out1));
 
     // -------------------------------------------------------------------------
     // Layer instantiations

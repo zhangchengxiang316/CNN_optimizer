@@ -47,7 +47,7 @@ module conv1 #(
     input  wire        rst_n,
     input  wire        start,
     output reg         done,
-    output reg signed [7:0] output_buf [0:C_OUT*H_OUT*W_OUT-1]
+    output reg [C_OUT*H_OUT*W_OUT*8-1:0] output_buf
 );
 
     // -------------------------------------------------------------------------
@@ -230,7 +230,7 @@ module conv1 #(
                 else                          quant = shifted[7:0];
 
                 // ReLU (Act1 merged)
-                output_buf[oc_s * (H_OUT * W_OUT) + oh * W_OUT + ow]
+                output_buf[(oc_s * (H_OUT * W_OUT) + oh * W_OUT + ow) * 8 +: 8]
                     <= quant[7] ? 8'sd0 : quant;
 
                 if (oc_s == C_OUT - 1) begin

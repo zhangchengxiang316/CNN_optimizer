@@ -27,8 +27,8 @@ module conv3_pw #(
     input  wire        rst_n,
     input  wire        start,
     output reg         done,
-    input  wire signed [7:0] input_buf  [0:C_IN*H*W-1],
-    output reg  signed [7:0] output_buf [0:C_OUT*H*W-1]
+    input  wire [C_IN*H*W*8-1:0]   input_buf,
+    output reg  [C_OUT*H*W*8-1:0]  output_buf
 );
 
     // -------------------------------------------------------------------------
@@ -72,7 +72,7 @@ module conv3_pw #(
     reg [5:0] oc_s;    // output channel counter for STORE (0..C_OUT-1=31)
 
     // Input pixel broadcast during MAC: all 32 OCs see the same ic-pixel
-    wire signed [7:0] mac_pixel = input_buf[ic * (H * W) + oh * W + ow];
+    wire signed [7:0] mac_pixel = $signed(input_buf[(ic * (H * W) + oh * W + ow) * 8 +: 8]);
 
     integer i;
 
@@ -125,7 +125,7 @@ module conv3_pw #(
                 else                          quant = shifted[7:0];
 
                 // No activation after Conv3 (activation is implicit via MaxPool + FC)
-                output_buf[oc_s * (H * W) + oh * W + ow] <= quant;
+                output_buf[(oc_s * (H * W) + oh * W + ow) * 8 +: 8] <= quant;
 
                 if (oc_s == C_OUT - 1) begin
                     oc_s <= 6'd0;

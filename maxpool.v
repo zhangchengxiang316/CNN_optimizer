@@ -25,8 +25,8 @@ module maxpool #(
     input  wire        rst_n,
     input  wire        start,
     output reg         done,
-    input  wire signed [7:0] input_buf  [0:C*H_IN*W_IN-1],
-    output reg  signed [7:0] output_buf [0:C*H_OUT*W_OUT-1]
+    input  wire [C*H_IN*W_IN*8-1:0]   input_buf,
+    output reg  [C*H_OUT*W_OUT*8-1:0] output_buf
 );
 
     localparam ST_IDLE = 2'd0,
@@ -44,9 +44,9 @@ module maxpool #(
     wire [1:0] kh_cur = ki[1];   // 0 or 1 (kernel row)
     wire [0:0] kw_cur = ki[0];   // 0 or 1 (kernel col)
     wire signed [7:0] pool_pixel =
-        input_buf[ch * (H_IN * W_IN) +
+        $signed(input_buf[(ch * (H_IN * W_IN) +
                   (oh * STRIDE + kh_cur) * W_IN +
-                  (ow * STRIDE + kw_cur)];
+                  (ow * STRIDE + kw_cur)) * 8 +: 8]);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -72,7 +72,7 @@ module maxpool #(
 
                 if (ki == KH * KW - 1) begin
                     // Save max result (pool_pixel is the last of 4; compare with running max)
-                    output_buf[ch * (H_OUT * W_OUT) + oh * W_OUT + ow]
+                    output_buf[(ch * (H_OUT * W_OUT) + oh * W_OUT + ow) * 8 +: 8]
                         <= ($signed(pool_pixel) > $signed(cur_max))
                            ? pool_pixel : cur_max;
 

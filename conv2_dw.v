@@ -34,9 +34,9 @@ module conv2_dw #(
     input  wire        start,
     output reg         done,
     // Input from previous layer (Conv1 output = Act1 output)
-    input  wire signed [7:0] input_buf  [0:C*H_IN*W_IN-1],
+    input  wire [C*H_IN*W_IN*8-1:0]   input_buf,
     // Output feature map
-    output reg  signed [7:0] output_buf [0:C*H_OUT*W_OUT-1]
+    output reg  [C*H_OUT*W_OUT*8-1:0] output_buf
 );
 
     // -------------------------------------------------------------------------
@@ -80,7 +80,7 @@ module conv2_dw #(
     wire [2:0] kh_cur = k_cnt / KW;
     wire [1:0] kw_cur = k_cnt % KW;
     wire signed [7:0] mac_pixel =
-        input_buf[ch * (H_IN * W_IN) + (oh + kh_cur) * W_IN + (ow + kw_cur)];
+        $signed(input_buf[(ch * (H_IN * W_IN) + (oh + kh_cur) * W_IN + (ow + kw_cur)) * 8 +: 8]);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -123,7 +123,7 @@ module conv2_dw #(
                 else                          quant = shifted[7:0];
 
                 // ReLU (Act2 merged)
-                output_buf[ch * (H_OUT * W_OUT) + oh * W_OUT + ow]
+                output_buf[(ch * (H_OUT * W_OUT) + oh * W_OUT + ow) * 8 +: 8]
                     <= quant[7] ? 8'sd0 : quant;
 
                 acc <= 32'sd0;

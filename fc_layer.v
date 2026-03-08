@@ -23,8 +23,8 @@ module fc_layer #(
     input  wire        rst_n,
     input  wire        start,
     output reg         done,
-    input  wire signed [7:0] input_buf  [0:C_IN-1],
-    output reg  signed [7:0] output_buf [0:C_OUT-1]
+    input  wire [C_IN*8-1:0]  input_buf,
+    output reg  [C_OUT*8-1:0] output_buf
 );
 
     // -------------------------------------------------------------------------
@@ -86,7 +86,7 @@ module fc_layer #(
             // Both output neurons accumulate in parallel for each input
             ST_MAC: begin
                 for (i = 0; i < C_OUT; i = i + 1)
-                    pe_acc[i] <= pe_acc[i] + input_buf[ic] * local_w[i][ic];
+                    pe_acc[i] <= pe_acc[i] + $signed(input_buf[ic*8 +: 8]) * local_w[i][ic];
 
                 if (ic == C_IN - 1) begin
                     ic    <= 9'd0;
@@ -109,7 +109,7 @@ module fc_layer #(
                 else if (shifted < -32'sd128) quant = -8'sd128;
                 else                          quant = shifted[7:0];
 
-                output_buf[oc_s] <= quant;
+                output_buf[oc_s*8 +: 8] <= quant;
 
                 if (oc_s == C_OUT - 1) begin
                     state <= ST_DONE;

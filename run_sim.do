@@ -13,8 +13,9 @@
 vlib work
 vmap work work
 
-# Compile all source files (SystemVerilog mode for unpacked array port support)
-vlog -sv -work work \
+# Compile all source files (Verilog-2001 compatible; -sv is optional)
+# Files can also be compiled individually, e.g.: vlog -work work conv1.v
+vlog -work work \
     pe.v \
     line_buffer.v \
     requantize.v \
